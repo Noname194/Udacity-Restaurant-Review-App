@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added 
   fetchNeighborhoods();
   fetchCuisines();
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      console.log('registrou o service Worker');
+    }).catch((err) => {
+      console.log('deu erro ao registrar');
+    })
+  } else {
+    console.log('Service Worker não suportado.')
+  }
+  
 });
 
 /**
@@ -78,7 +89,7 @@ initMap = () => {
         scrollWheelZoom: false
       });
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-    mapboxToken: '<your MAPBOX API KEY HERE>',
+    mapboxToken: 'pk.eyJ1Ijoibm9uYW1lMTk0IiwiYSI6ImNqb3JxZ2RoMzBpbjQzcHBpaWZhNDlkejgifQ.F19KvsD5k5GSYOADCsOh7Q',
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
       '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -110,6 +121,7 @@ updateRestaurants = () => {
 
   const cIndex = cSelect.selectedIndex;
   const nIndex = nSelect.selectedIndex;
+  
 
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
@@ -156,14 +168,22 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
  * Create restaurant HTML.
  */
 createRestaurantHTML = (restaurant) => {
+  const div = document.createElement('div');
   const li = document.createElement('li');
+
+  div.classList.add('restaurant-img-container');
+  div.setAttribute('role', 'img');
+  li.setAttribute('aria-label', `${restaurant.name}`);
 
   const image = document.createElement('img');
   image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  li.append(image);
+  image.alt = `${restaurant.name}`;
+  div.append(image);
+  li.append(div)
 
-  const name = document.createElement('h1');
+
+  const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
   li.append(name);
 
@@ -198,6 +218,9 @@ addMarkersToMap = (restaurants = self.restaurants) => {
   });
 
 } 
+
+
+
 /* addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
